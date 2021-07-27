@@ -1,0 +1,38 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# .github/workflows/generate_readme.yml
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: release scan
+
+# Controls when the workflow will run
+on:
+  repository_dispatch:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/6 * * * *'
+
+jobs:
+  generate:
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.allow-failure || true}}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+      fail-fast: false    
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+
+    - name: Run
+      run: python gen.py
+
+    - name: Release
+      run: |
+        git config user.name "${GITHUB_ACTOR}"
+        git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+        git add .
+        git commit -am "fix release"
+        git push origin main
